@@ -1,4 +1,5 @@
 import {WebSocket, WebSocketServer} from "ws";
+import bonjour from "bonjour";
 
 const HOST = "0.0.0.0";
 
@@ -8,38 +9,40 @@ const wss = new WebSocketServer({host: HOST, port: PORT});
 
 const clients = new Set<WebSocket>();
 
-let latestFrame: Buffer | null = null;
+let latestMessage: [WebSocket, string] | null = null;
 
 wss.on("connection", (ws: WebSocket) => {
     clients.add(ws);
 
-    console.log(`Client connected, total: ${clients.size}`);
+    if (latestMessage != null) {
+        clients.forEach(client => {
+            const [sender, message] = latestMessage!
+
+            if (sender != client) {
+                client.send(message)
+            }
+        })
+    }
 
     ws.on("message", (msg: WebSocket.Data) => {
-        console.log(`Received message: ${msg}`);
-
-        try {
-            if (Buffer.isBuffer(msg)) {
-                latestFrame = msg;
-
-                clients.forEach(client => {
-                    if (client.readyState === WebSocket.OPEN && client !== ws && latestFrame != null) {
-                        client.send(latestFrame);
-                    }
-                });
-            }
-        } catch (err) {
-            console.error("Bad message", err);
+        if (typeof msg === "string") {
+            latestMessage = [ws, msg];
         }
     });
 
     ws.on("close", () => {
         clients.delete(ws);
 
-        console.log(`Client disconnected, remaining: ${clients.size}`);
+        if (latestMessage != null && latestMessage[0] === ws) {
+            latestMessage = null;
+        }
     });
-
-    ws.send(JSON.stringify({info: "Connected"}));
 });
 
-console.log(`Server running on ws://${HOST}:${PORT}`);
+const bonjourService = bonjour();
+
+bonjourService.publish({
+    name: "comfyui-camera-capture-node",
+    type: "_ws._tcp",
+    port: PORT
+});
