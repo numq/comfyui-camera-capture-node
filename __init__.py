@@ -1,11 +1,12 @@
 import base64
 import io
+import subprocess
+import time
 
 import numpy as np
 import requests
 import torch
 from PIL import Image
-from ppadb.client import Client as AdbClient
 
 DEFAULT_HOST = "127.0.0.1"
 ADB_PORT = 5037
@@ -24,28 +25,19 @@ class CameraCapture:
             "required": {
                 "host": ("STRING", {"default": "127.0.0.1"}),
                 "port": ("INT", {"default": 8080, "min": 1024, "max": 49151}),
-                "timeout": ("FLOAT", {"default": 5.0, "min": 1.0, "max": 30.0, "step": 0.5}),
+                "timeout": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 30.0, "step": 0.5}),
             }
         }
 
     @classmethod
     def IS_CHANGED(cls, host, port, timeout):
-        return hash((host, port, timeout))
+        return time.time()
 
-    def _port_forward(self, port):
-        client = AdbClient(host=DEFAULT_HOST, port=ADB_PORT)
-
-        devices = client.devices()
-
-        if not devices:
-            raise Exception("No devices connected")
-
-        device = devices[0]
-
-        device.forward(f"tcp:{port}", f"tcp:{port}")
+    def _adb_forward(self, port):
+        subprocess.run(["adb", "forward", f"tcp:{port}", f"tcp:{port}"])
 
     def capture(self, host, port, timeout):
-        self._port_forward(port)
+        self._adb_forward(port)
 
         url = f"http://{host}:{port}/capture"
 
@@ -55,27 +47,31 @@ class CameraCapture:
             if response.status_code == 200:
                 data = response.json()
 
-                image_bytes = base64.b64decode(data["image_bytes"])
+                if data.get("status") == "success":
+                    image_bytes = base64.b64decode(data["image_bytes"])
 
-                width = data["width"]
+                    width = data["width"]
 
-                height = data["height"]
+                    height = data["height"]
 
-                if width == 0 or height == 0:
-                    raise Exception("Invalid image size")
+                    if width == 0 or height == 0:
+                        raise Exception("Invalid image size")
 
-                rotation_degrees = data["rotation_degrees"]
+                    rotation_degrees = data["rotation_degrees"]
 
-                img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+                    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-                arr = np.asarray(img).astype(np.float32) / 255.0
+                    arr = np.asarray(img).astype(np.float32) / 255.0
 
-                tensor = torch.from_numpy(arr).unsqueeze(0)
+                    tensor = torch.from_numpy(arr).unsqueeze(0)
 
-                return tensor, width, height, rotation_degrees
+                    return tensor, width, height, rotation_degrees
+                else:
+                    error_msg = data.get("error", "Unknown error")
+
+                    raise Exception(error_msg)
             else:
-                print(f"HTTP error: {response.status_code}")
-
+                raise Exception(f"HTTP error: {response.status_code}")
         except requests.exceptions.Timeout:
             print("Server connection timeout")
         except requests.exceptions.ConnectionError:
