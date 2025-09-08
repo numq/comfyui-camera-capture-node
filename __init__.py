@@ -13,8 +13,8 @@ ADB_PORT = 5037
 
 
 class CameraCapture:
-    RETURN_TYPES = ("IMAGE", "INT", "INT", "INT")
-    RETURN_NAMES = ("image", "width", "height", "rotation_degrees")
+    RETURN_TYPES = ("IMAGE", "INT", "INT")
+    RETURN_NAMES = ("image", "width", "height")
     FUNCTION = "capture"
     CATEGORY = "camera"
     OUTPUT_NODE = True
@@ -24,7 +24,7 @@ class CameraCapture:
         return {
             "required": {
                 "host": ("STRING", {"default": "127.0.0.1"}),
-                "port": ("INT", {"default": 8080, "min": 1024, "max": 49151}),
+                "port": ("INT", {"default": 8090, "min": 1024, "max": 49151}),
                 "timeout": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 30.0, "step": 0.5}),
             }
         }
@@ -57,15 +57,13 @@ class CameraCapture:
                     if width == 0 or height == 0:
                         raise Exception("Invalid image size")
 
-                    rotation_degrees = data["rotation_degrees"]
-
                     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
                     arr = np.asarray(img).astype(np.float32) / 255.0
 
                     tensor = torch.from_numpy(arr).unsqueeze(0)
 
-                    return tensor, width, height, rotation_degrees
+                    return tensor, width, height
                 else:
                     error_msg = data.get("error", "Unknown error")
 
@@ -81,7 +79,7 @@ class CameraCapture:
         except Exception as e:
             print(f"Unexpected error: {e}")
 
-        return torch.zeros((1, 512, 512, 3), dtype=torch.float32), 512, 512, 0
+        return torch.zeros((1, 512, 512, 3), dtype=torch.float32), 512, 512
 
 
 NODE_CLASS_MAPPINGS = {"CameraCapture": CameraCapture}
