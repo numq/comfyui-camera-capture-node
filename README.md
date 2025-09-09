@@ -29,10 +29,10 @@ and
 
 # 📱 Supported platforms
 
-| Platform | Availability |
-|:--------:|:------------:|
-| Android  |      ✅       |
-|   iOS    |      ❌       |
+| Platform | Minimal Version | Availability |
+|:--------:|:---------------:|:------------:|
+| Android  |  8.0 (SDK 28)   |      ✅       |
+|   iOS    |        -        |      ❌       |
 
 # ✨ Features
 
@@ -75,7 +75,7 @@ and can be called in command line
 
 ## Android
 
-Install the [camera-capture](https://github.com/numq/camera-capture) application, which allows you to
+Install the [Camera Capture](https://github.com/numq/camera-capture) application, which allows you to
 capture images from your smartphone camera
 
 ## ComfyUI node
@@ -109,5 +109,5 @@ there
 
 - [ComfyUI](https://www.comfy.org/)
 - [adb](https://developer.android.com/tools/adb)
-- [camera-capture](https://github.com/numq/camera-capture)
+- [Camera Capture](https://github.com/numq/camera-capture)
 - [comfyui-camera-capture-node](https://github.com/numq/comfyui-camera-capture-node)
