@@ -38,15 +38,11 @@ and
 
 ## Android
 
-> You can, but you don't need to configure the `host` (default: 0.0.0.0)
-
 - Configure `port` (default: 8090)
 - Turn `flashlight` on/off
 - Switch camera `lens facing`
 
 ## ComfyUI node:
-
-> You can, but you don't need to configure the `host` (default: 127.0.0.1)
 
 - Configure `port` (default: 8090)
 - Configure `timeout` (default: 10 seconds)
@@ -87,7 +83,7 @@ there
 # 🎯 Usage
 
 > [!IMPORTANT]
-> Make sure the host and port of the client and server match
+> Make sure the port of the client and server match
 
 ## Android
 

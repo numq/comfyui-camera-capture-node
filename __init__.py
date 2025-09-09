@@ -23,23 +23,22 @@ class CameraCapture:
     def INPUT_TYPES(cls):
         return {
             "required": {
-                "host": ("STRING", {"default": "127.0.0.1"}),
                 "port": ("INT", {"default": 8090, "min": 1024, "max": 49151}),
                 "timeout": ("FLOAT", {"default": 10.0, "min": 1.0, "max": 30.0, "step": 0.5}),
             }
         }
 
     @classmethod
-    def IS_CHANGED(cls, host, port, timeout):
+    def IS_CHANGED(cls, port, timeout):
         return time.time()
 
     def _adb_forward(self, port):
         subprocess.run(["adb", "forward", f"tcp:{port}", f"tcp:{port}"])
 
-    def capture(self, host, port, timeout):
+    def capture(self, port, timeout):
         self._adb_forward(port)
 
-        url = f"http://{host}:{port}/capture"
+        url = f"http://{DEFAULT_HOST}:{port}/capture"
 
         try:
             response = requests.get(url, timeout=timeout)
