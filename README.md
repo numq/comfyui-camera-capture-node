@@ -10,7 +10,7 @@
 
 </div>
 
-<p align="center">This is a project that provides the ability to take pictures with your smartphone camera</p>
+<p align="center">This is a project that provides the ability to take pictures with a smartphone camera and use them in the ComfyUI workflow</p>
 <p align="center">The project consists of two parts:
 <br>
 <a href="https://github.com/numq/comfyui-camera-capture-node">ComfyUI node 📍</a>
